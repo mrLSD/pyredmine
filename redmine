@@ -1,0 +1,48 @@
+#! /usr/bin/env python
+"""
+How to use:
+sudo pip install python-redmine
+set ~/.bashrc
+export PYREDMINE_API_KEY='APIKEY'
+export PYREDMINE_URL='http://yourredminadomain.com'
+
+API key you should get at Redmine:
+My Account -> Right column -> show API access key
+"""
+__author__ = 'Evgeny Ukhanov'
+import os
+from redmine import Redmine
+redmine_url = redmine_api_key = ""
+
+# Get settings from ENV
+if 'PYREDMINE_API_KEY' in os.environ and 'PYREDMINE_URL' in os.environ:
+    redmine_url = os.environ['PYREDMINE_URL']
+    redmine_api_key = os.environ['PYREDMINE_API_KEY']
+else:
+    print "First of all yot should set ENV variables PYREDMINE_URL and PYREDMINE_API_KEY at .bashrc"
+    exit()
+priorities = ['immediately', 'urgent', 'high', 'normal', 'low']
+
+redmine = Redmine(redmine_url, key=redmine_api_key)
+user = redmine.user.get('current')
+issues = redmine.issue.filter(project_id=5, assigned_to_id=user.id)
+p_issues = []
+# Sort issues by priority
+for priority in priorities:
+    for issue in issues:
+        if priority == str(issue.priority).lower():
+            p_issues.append(issue)
+
+print '\nTOTAL ISSUES: ', len(p_issues)
+previous_priority = issues[0]
+# Render grid
+for issue in p_issues:
+    fseparator = '\t\t'
+    start_line = str(issue.id)
+    # Formatting checking for priority word length and line separator
+    if str(issue.priority).lower() != previous_priority:
+        previous_priority = str(issue.priority).lower()
+        start_line = '\n' + str(issue.id)
+    if str(issue.status).lower() in ['feedback', 'in progress', 'on hold']:
+        fseparator = '\t'
+    print start_line, '\t', issue.priority, '\t', issue.version, '\t', issue.status, fseparator, issue.subject
