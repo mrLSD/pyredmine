@@ -9,8 +9,10 @@ export PYREDMINE_URL='http://yourredminadomain.com'
 API key you should get at Redmine:
 My Account -> Right column -> show API access key
 """
+from csv import excel
+
 __author__ = 'Evgeny Ukhanov'
-import os
+import os, sys
 from redmine import Redmine
 redmine_url = redmine_api_key = ""
 
@@ -24,6 +26,25 @@ else:
 priorities = ['immediately', 'urgent', 'high', 'normal', 'low']
 
 redmine = Redmine(redmine_url, key=redmine_api_key)
+if len(sys.argv) > 2:
+    action = sys.argv[1]
+    id = sys.argv[2]
+    if action == 'pro':
+        try:
+            issue = redmine.issue.get(id)
+            #assigned_to_id=16
+            redmine.issue.update(id, status_id=2)
+            print "Issue updated"
+        except:
+            print "Issue not found"
+    if action == 'res':
+        try:
+            issue = redmine.issue.get(id)
+            redmine.issue.update(id, status_id=3, assigned_to_id=16)
+            print "Issue updated"
+        except:
+            print "Issue not found"
+    exit()
 user = redmine.user.get('current')
 issues = redmine.issue.filter(project_id=5, assigned_to_id=user.id)
 p_issues = []
